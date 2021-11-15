@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
-# from guardian.shortcuts import get_groups_with_perms, assign_perm, remove_perm
 from pulpcore.app.role_util import assign_role, remove_role, get_groups_with_perms
 from pulpcore.app.models.role import GroupRole
 from django.contrib.contenttypes.models import ContentType
@@ -37,7 +36,7 @@ class GroupModelPermissionsMixin:
 
     @transaction.atomic
     def _set_groups(self, groups):
-        # guardian doesn't allow adding permissions to objects that haven't been
+        # Can't add permissions to objects that haven't been
         # saved. When creating new objects, save group data to _groups where it
         # can be picked up by the post save hook.
         if self._state.adding:

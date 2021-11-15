@@ -78,8 +78,6 @@ class MyPermissionsField(serializers.Serializer):
     def to_representation(self, obj):
         user = self.context['request'].user
 
-        # guardian's get_perms(user, obj) method only returns user permissions,
-        # not all permissions a user has.
         my_perms = []
         for perm in get_perms_for_model(type(obj)).all():
             codename = "{}.{}".format(perm.content_type.app_label, perm.codename)
