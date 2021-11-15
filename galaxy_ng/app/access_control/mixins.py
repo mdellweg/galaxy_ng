@@ -1,7 +1,27 @@
 from django.conf import settings
 from django.db import transaction
-from guardian.shortcuts import get_groups_with_perms, assign_perm, remove_perm
+from django.db.models import Q
+# from guardian.shortcuts import get_groups_with_perms, assign_perm, remove_perm
+from pulpcore.app.role_util import assign_role, remove_role, get_groups_with_perms
+from pulpcore.app.models.role import GroupRole
+from django.contrib.contenttypes.models import ContentType
+
 from django_lifecycle import hook
+
+
+def tmp_get_groups_with_perms_attched_roles(obj):
+    groups = get_groups_with_perms(obj)
+    ctype = ContentType.objects.get_for_model(obj)
+
+    result = {}
+    for group in groups:
+        group_roles = GroupRole.objects.filter(
+            Q(object_id=None) | Q(content_type=ctype, object_id=obj.pk)
+        )
+
+        result[group] = [gr.role.name for gr in group_roles]
+
+    return result
 
 
 class GroupModelPermissionsMixin:
@@ -9,7 +29,7 @@ class GroupModelPermissionsMixin:
 
     @property
     def groups(self):
-        return get_groups_with_perms(self, attach_perms=True)
+        return tmp_get_groups_with_perms_attched_roles(self)
 
     @groups.setter
     def groups(self, groups):
@@ -23,14 +43,14 @@ class GroupModelPermissionsMixin:
         if self._state.adding:
             self._groups = groups
         else:
-            current_groups = get_groups_with_perms(self, attach_perms=True)
+            current_groups = tmp_get_groups_with_perms_attched_roles(self)
             for group in current_groups:
                 for perm in current_groups[group]:
-                    remove_perm(perm, group, self)
+                    remove_role(perm, group, self)
 
             for group in groups:
                 for perm in groups[group]:
-                    assign_perm(perm, group, self)
+                    assign_role(perm, group, self)
 
     @hook('after_save')
     def set_object_groups(self):
