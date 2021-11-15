@@ -1,7 +1,7 @@
 import logging
 
 from django.shortcuts import get_object_or_404
-from guardian.shortcuts import get_objects_for_user
+from pulpcore.app.role_util import get_objects_for_user
 
 from rest_framework.decorators import action
 

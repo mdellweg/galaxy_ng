@@ -1,5 +1,5 @@
 from galaxy_ng.app import models
-from guardian.shortcuts import get_objects_for_user
+from pulpcore.app.role_util import get_objects_for_user
 
 from .namespace import NamespaceViewSet
 
