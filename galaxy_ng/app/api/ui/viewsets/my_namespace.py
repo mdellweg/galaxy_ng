@@ -10,5 +10,5 @@ class MyNamespaceViewSet(NamespaceViewSet):
             self.request.user,
             ('galaxy.change_namespace', 'galaxy.upload_to_namespace'),
             any_perm=True,
-            klass=models.Namespace
+            qs=models.Namespace.objects.all()
         )

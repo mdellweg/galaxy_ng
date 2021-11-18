@@ -5,7 +5,7 @@ import logging
 from django.db import transaction
 from django.conf import settings
 
-from guardian import shortcuts
+from pulpcore.app.role_util import get_objects_for_group
 
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
@@ -82,11 +82,9 @@ class RHIdentityAuthentication(BaseAuthentication):
     def _ensure_synclists(self, group):
         with transaction.atomic():
             # check for existing synclists
-            perms = ['galaxy.view_synclist']
 
             synclists_owned_by_group = \
-                shortcuts.get_objects_for_group(group, perms, klass=SyncList,
-                                                any_perm=False, accept_global_perms=True)
+                get_objects_for_group(group, 'galaxy.view_synclist', SyncList.objects.all())
             if synclists_owned_by_group:
                 return synclists_owned_by_group
 
@@ -104,8 +102,13 @@ class RHIdentityAuthentication(BaseAuthentication):
                 policy=SYNCLIST_DEFAULT_POLICY,
                 name=distro_name)
 
-            default_synclist.groups = {group: ['galaxy.view_synclist', 'galaxy.add_synclist',
-                                               'galaxy.delete_synclist', 'galaxy.change_synclist']}
+
+
+
+
+
+            # TODO need to create role for synclist owners
+            default_synclist.groups = {group: ['galaxy.synclist_owner']}
             default_synclist.save()
         return default_synclist
 

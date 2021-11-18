@@ -1,26 +1,17 @@
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Q
-from pulpcore.app.role_util import assign_role, remove_role, get_groups_with_perms
-from pulpcore.app.models.role import GroupRole
-from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import BadRequest
+from django.utils.translation import gettext_lazy as _
+
+from rest_framework.exceptions import ValidationError
+
+from pulpcore.app.role_util import (
+    assign_role,
+    remove_role,
+    get_groups_with_perms_attached_roles
+)
 
 from django_lifecycle import hook
-
-
-def tmp_get_groups_with_perms_attched_roles(obj):
-    groups = get_groups_with_perms(obj)
-    ctype = ContentType.objects.get_for_model(obj)
-
-    result = {}
-    for group in groups:
-        group_roles = GroupRole.objects.filter(
-            Q(object_id=None) | Q(content_type=ctype, object_id=obj.pk)
-        )
-
-        result[group] = [gr.role.name for gr in group_roles]
-
-    return result
 
 
 class GroupModelPermissionsMixin:
@@ -28,7 +19,7 @@ class GroupModelPermissionsMixin:
 
     @property
     def groups(self):
-        return tmp_get_groups_with_perms_attched_roles(self)
+        return get_groups_with_perms_attached_roles(self)
 
     @groups.setter
     def groups(self, groups):
@@ -42,14 +33,20 @@ class GroupModelPermissionsMixin:
         if self._state.adding:
             self._groups = groups
         else:
-            current_groups = tmp_get_groups_with_perms_attched_roles(self)
+            current_groups = get_groups_with_perms_attached_roles(self)
             for group in current_groups:
                 for perm in current_groups[group]:
                     remove_role(perm, group, self)
 
             for group in groups:
-                for perm in groups[group]:
-                    assign_role(perm, group, self)
+                for role in groups[group]:
+                    try:
+                        assign_role(role, group, self)
+                    except BadRequest:
+                        raise ValidationError(
+                            detail={'groups': _(f'Role {role} does not exist or does not '
+                                                'have any permissions related to this object.')}
+                        )
 
     @hook('after_save')
     def set_object_groups(self):
