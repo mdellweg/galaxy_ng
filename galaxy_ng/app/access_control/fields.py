@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 
 from pulpcore.app.models.role import Role
 
-from pulpcore.app.role_util import get_perms_for_model
+from pulpcore.plugin.util import get_perms_for_model
 
 from galaxy_ng.app.models import auth as auth_models
 

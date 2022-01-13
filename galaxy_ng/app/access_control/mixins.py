@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 from rest_framework.exceptions import ValidationError
 
-from pulpcore.app.role_util import (
+from pulpcore.plugin.util import (
     assign_role,
     remove_role,
     get_groups_with_perms_attached_roles

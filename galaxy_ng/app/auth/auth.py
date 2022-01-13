@@ -5,7 +5,7 @@ import logging
 from django.db import transaction
 from django.conf import settings
 
-from pulpcore.app.role_util import get_objects_for_group
+from pulpcore.plugin.util import get_objects_for_group
 
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
