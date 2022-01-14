@@ -59,7 +59,7 @@ class GroupPermissionField(serializers.Field):
                     group_filter[field] = group_data[field]
             try:
                 group = auth_models.Group.objects.get(**group_filter)
-                internal[group] = group_data['object_roles']
+                internal[group] = group_data['object_permissions']
             except auth_models.Group.DoesNotExist:
                 raise ValidationError(detail={
                     'groups': _("Group name=%s, id=%s does not exist") % (

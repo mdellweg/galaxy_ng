@@ -102,12 +102,6 @@ class RHIdentityAuthentication(BaseAuthentication):
                 policy=SYNCLIST_DEFAULT_POLICY,
                 name=distro_name)
 
-
-
-
-
-
-            # TODO need to create role for synclist owners
             default_synclist.groups = {group: ['galaxy.synclist_owner']}
             default_synclist.save()
         return default_synclist
