@@ -8,7 +8,8 @@ from rest_framework.test import APIClient, APITestCase
 from galaxy_ng.app import models
 from galaxy_ng.app.access_control import access_policy
 from galaxy_ng.app.models import auth as auth_models
-from guardian.shortcuts import assign_perm
+from pulpcore.app.models.role import GroupRole, Role
+from pulpcore.plugin.util import assign_role
 from galaxy_ng.app import constants
 
 
@@ -82,7 +83,7 @@ class BaseTestCase(APITestCase):
             users = [users]
         group.user_set.add(*users)
         for p in perms:
-            assign_perm(p, group)
+            assign_role(p, group)
         return group
 
     @staticmethod
@@ -94,51 +95,36 @@ class BaseTestCase(APITestCase):
         groups_to_add = {}
         for group in groups:
             groups_to_add[group] = [
-                'galaxy.upload_to_namespace',
-                'galaxy.change_namespace',
-                'galaxy.delete_namespace'
+                'galaxy.namespace_owner',
             ]
         namespace.groups = groups_to_add
         return namespace
 
     @staticmethod
     def _create_partner_engineer_group():
-        pe_perms = [
+        pe_roles = [
             # namespaces
-            'galaxy.add_namespace',
-            'galaxy.change_namespace',
-            'galaxy.upload_to_namespace',
-            'galaxy.delete_namespace',
+            'galaxy.namespace_owner',
 
             # collections
-            'ansible.modify_ansible_repo_content',
-            'ansible.delete_collection',
+            'galaxy.collection_admin',
 
             # users
-            'galaxy.view_user',
-            'galaxy.delete_user',
-            'galaxy.add_user',
-            'galaxy.change_user',
+            'galaxy.user_admin',
 
             # groups
-            'galaxy.view_group',
-            'galaxy.delete_group',
-            'galaxy.add_group',
-            'galaxy.change_group',
+            'galaxy.group_admin',
 
             # synclists
-            'galaxy.delete_synclist',
-            'galaxy.change_synclist',
-            'galaxy.view_synclist',
-            'galaxy.add_synclist',
-
-            # sync config
-            'ansible.change_collectionremote',
+            'galaxy.synclist_owner',
         ]
         pe_group = auth_models.Group.objects.create(
             name='partner-engineers')
 
-        for perm in pe_perms:
-            assign_perm(perm, pe_group)
+        for role in pe_roles:
+            # GroupRole.objects.create(role=Role.objects.get(name=role), group=pe_group)
+            assign_role(role, pe_group)
+            # Results in:
+            #   ValueError: Cannot assign "<Group: partner-engineers>": "UserRole.user" must be a "User" instance.
 
         return pe_group
