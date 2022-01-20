@@ -82,151 +82,150 @@ class TestV3NamespaceViewSet(BaseTestCase):
             self.assertEqual(expected_error_codes, received_error_codes)
             self.assertEqual(expected_error_fields, received_error_fields)
 
-    # def test_namespace_list_empty(self):
-    #     self.client.force_authenticate(user=self.admin_user)
-    #     with self.settings(GALAXY_DEPLOYMENT_MODE=self.deployment_mode):
-    #         response = self.client.get(self.ns_url)
-    #         self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #         data = response.data['data']
-    #         log.debug("data: %s", data)
-    #         self.assertEqual(len(data), Namespace.objects.all().count())
+    def test_namespace_list_empty(self):
+        self.client.force_authenticate(user=self.admin_user)
+        with self.settings(GALAXY_DEPLOYMENT_MODE=self.deployment_mode):
+            response = self.client.get(self.ns_url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            data = response.data['data']
+            log.debug("data: %s", data)
+            self.assertEqual(len(data), Namespace.objects.all().count())
 
-    # def test_namespace_list(self):
-    #     self.client.force_authenticate(user=self.admin_user)
-    #     ns1_name = "unittestnamespace1"
-    #     ns2_name = "unittestnamespace2"
-    #     self._create_namespace(ns1_name, groups=[self.pe_group])
-    #     self._create_namespace(ns2_name, groups=[self.pe_group])
-    #     with self.settings(GALAXY_DEPLOYMENT_MODE=self.deployment_mode):
-    #         response = self.client.get(self.ns_url)
-    #         self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #         data = response.data['data']
-    #         log.debug("data: %s", data)
-    #         self.assertEqual(len(data), Namespace.objects.all().count())
+    def test_namespace_list(self):
+        self.client.force_authenticate(user=self.admin_user)
+        ns1_name = "unittestnamespace1"
+        ns2_name = "unittestnamespace2"
+        self._create_namespace(ns1_name, groups=[self.pe_group])
+        self._create_namespace(ns2_name, groups=[self.pe_group])
+        with self.settings(GALAXY_DEPLOYMENT_MODE=self.deployment_mode):
+            response = self.client.get(self.ns_url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            data = response.data['data']
+            log.debug("data: %s", data)
+            self.assertEqual(len(data), Namespace.objects.all().count())
 
-    # def test_namespace_get(self):
-    #     ns_name = "unittestnamespace"
-    #     ns1 = self._create_namespace(ns_name, groups=[self.pe_group])
+    def test_namespace_get(self):
+        ns_name = "unittestnamespace"
+        ns1 = self._create_namespace(ns_name, groups=[self.pe_group])
 
-    #     ns_detail_url = reverse('galaxy:api:v3:namespaces-detail', kwargs={"name": ns1.name})
+        ns_detail_url = reverse('galaxy:api:v3:namespaces-detail', kwargs={"name": ns1.name})
 
-    #     self.client.force_authenticate(user=self.admin_user)
+        self.client.force_authenticate(user=self.admin_user)
 
-    #     with self.settings(GALAXY_DEPLOYMENT_MODE=self.deployment_mode):
-    #         response = self.client.get(ns_detail_url)
-    #         log.debug('response: %s', response)
+        with self.settings(GALAXY_DEPLOYMENT_MODE=self.deployment_mode):
+            response = self.client.get(ns_detail_url)
+            log.debug('response: %s', response)
 
-    #         self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    #         data = response.data
-    #         log.debug('data: %s', data)
+            data = response.data
+            log.debug('data: %s', data)
 
-    #         namespace = NamespaceSerializer(data=data)
-    #         log.debug('repr namespace serializer: %r', namespace)
+            namespace = NamespaceSerializer(data=data)
+            log.debug('repr namespace serializer: %r', namespace)
 
-    #         namespace.is_valid()
-    #         log.debug('namespace.errors: %s', namespace.errors)
+            namespace.is_valid()
+            log.debug('namespace.errors: %s', namespace.errors)
 
-    #         log.debug('namespace.validated_data: %s', namespace.validated_data)
+            log.debug('namespace.validated_data: %s', namespace.validated_data)
 
-    #         self.assertEqual(data['name'], ns_name)
-    #         self.assertEqual(data['name'], ns1.name)
+            self.assertEqual(data['name'], ns_name)
+            self.assertEqual(data['name'], ns1.name)
 
-    #         self.assertEqual(data["links"], [])
-    #         self.assertIn("avatar_url", data)
-    #         self.assertIn("company", data)
-    #         self.assertIn("description", data)
+            self.assertEqual(data["links"], [])
+            self.assertIn("avatar_url", data)
+            self.assertIn("company", data)
+            self.assertIn("description", data)
 
-    #         self.assertEqual(len(data['groups']), self.admin_user.groups.all().count())
+            self.assertEqual(len(data['groups']), self.admin_user.groups.all().count())
 
-    # def test_namespace_api_creates_deletes_inbound_repo(self):
-    #     self.client.force_authenticate(user=self.admin_user)
-    #     ns1_name = "unittestnamespace1"
-    #     repo_name = INBOUND_REPO_NAME_FORMAT.format(namespace_name=ns1_name)
+    def test_namespace_api_creates_deletes_inbound_repo(self):
+        self.client.force_authenticate(user=self.admin_user)
+        ns1_name = "unittestnamespace1"
+        repo_name = INBOUND_REPO_NAME_FORMAT.format(namespace_name=ns1_name)
 
-    #     with self.settings(GALAXY_DEPLOYMENT_MODE=self.deployment_mode):
-    #         # Create namespace + repo
-    #         response = self.client.post(
-    #             self.ns_url,
-    #             {
-    #                 "name": ns1_name,
-    #                 "groups": [
-    #                     {
-    #                         "id": self.pe_group.id,
-    #                         "name": self.pe_group.name,
-    #                         "object_permissions": [
-    #                             'galaxy.upload_to_namespace',
-    #                             'galaxy.change_namespace',
-    #                             'galaxy.delete_namespace',
-    #                         ]
-    #                     },
-    #                 ],
-    #             },
-    #             format='json',
-    #         )
-    #         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-    #         self.assertEqual(1, len(AnsibleRepository.objects.filter(name=repo_name)))
-    #         self.assertEqual(1, len(AnsibleDistribution.objects.filter(name=repo_name)))
+        with self.settings(GALAXY_DEPLOYMENT_MODE=self.deployment_mode):
+            # Create namespace + repo
+            response = self.client.post(
+                self.ns_url,
+                {
+                    "name": ns1_name,
+                    "groups": [
+                        {
+                            "id": self.pe_group.id,
+                            "name": self.pe_group.name,
+                            "object_roles": [
+                                'galaxy.namespace_owner',
+                            ]
+                        },
+                    ],
+                },
+                format='json',
+            )
+            print(f"\n\n response: {response} \n\n")
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            self.assertEqual(1, len(AnsibleRepository.objects.filter(name=repo_name)))
+            self.assertEqual(1, len(AnsibleDistribution.objects.filter(name=repo_name)))
 
-    #         # List namespace
-    #         response = self.client.get(self.ns_url)
-    #         self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #         namespaces = [item['name'] for item in response.data['data']]
-    #         self.assertIn(ns1_name, namespaces)
-    #         self.assertEqual(1, len(Namespace.objects.filter(name=ns1_name)))
+            # List namespace
+            response = self.client.get(self.ns_url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            namespaces = [item['name'] for item in response.data['data']]
+            self.assertIn(ns1_name, namespaces)
+            self.assertEqual(1, len(Namespace.objects.filter(name=ns1_name)))
 
-    #         # Delete namespace + repo
-    #         ns_detail_url = reverse('galaxy:api:v3:namespaces-detail', kwargs={"name": ns1_name})
-    #         response = self.client.delete(ns_detail_url)
-    #         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-    #         self.assertEqual(0, len(AnsibleRepository.objects.filter(name=repo_name)))
-    #         self.assertEqual(0, len(AnsibleDistribution.objects.filter(name=repo_name)))
-    #         self.assertEqual(0, len(Namespace.objects.filter(name=ns1_name)))
+            # Delete namespace + repo
+            ns_detail_url = reverse('galaxy:api:v3:namespaces-detail', kwargs={"name": ns1_name})
+            response = self.client.delete(ns_detail_url)
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+            self.assertEqual(0, len(AnsibleRepository.objects.filter(name=repo_name)))
+            self.assertEqual(0, len(AnsibleDistribution.objects.filter(name=repo_name)))
+            self.assertEqual(0, len(Namespace.objects.filter(name=ns1_name)))
 
-    # def test_unauthorized_user_cant_delete_namespace(self):
-    #     ns1_name = "unittestnamespacefordeletion"
-    #     repo_name = INBOUND_REPO_NAME_FORMAT.format(namespace_name=ns1_name)
-    #     self._create_namespace(ns1_name, groups=[self.pe_group])
+    def test_unauthorized_user_cant_delete_namespace(self):
+        ns1_name = "unittestnamespacefordeletion"
+        repo_name = INBOUND_REPO_NAME_FORMAT.format(namespace_name=ns1_name)
+        self._create_namespace(ns1_name, groups=[self.pe_group])
 
-    #     with self.settings(GALAXY_DEPLOYMENT_MODE=self.deployment_mode):
-    #         self.client.force_authenticate(user=self.regular_user)
-    #         ns_detail_url = reverse('galaxy:api:v3:namespaces-detail', kwargs={"name": ns1_name})
-    #         response = self.client.delete(ns_detail_url)
-    #         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-    #         self.assertEqual(1, len(Namespace.objects.filter(name=ns1_name)))
-    #         self.assertEqual(1, len(AnsibleRepository.objects.filter(name=repo_name)))
-    #         self.assertEqual(1, len(AnsibleDistribution.objects.filter(name=repo_name)))
+        with self.settings(GALAXY_DEPLOYMENT_MODE=self.deployment_mode):
+            self.client.force_authenticate(user=self.regular_user)
+            ns_detail_url = reverse('galaxy:api:v3:namespaces-detail', kwargs={"name": ns1_name})
+            response = self.client.delete(ns_detail_url)
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+            self.assertEqual(1, len(Namespace.objects.filter(name=ns1_name)))
+            self.assertEqual(1, len(AnsibleRepository.objects.filter(name=repo_name)))
+            self.assertEqual(1, len(AnsibleDistribution.objects.filter(name=repo_name)))
 
-    # def test_delete_namespace_no_error_if_no_repo_exist(self):
-    #     ns2_name = "unittestnamespace2"
-    #     self._create_namespace(ns2_name, groups=[self.pe_group])
-    #     ns_detail_url = reverse('galaxy:api:v3:namespaces-detail', kwargs={"name": ns2_name})
-    #     with self.settings(GALAXY_DEPLOYMENT_MODE=self.deployment_mode):
-    #         response = self.client.delete(ns_detail_url)
-    #         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    def test_delete_namespace_no_error_if_no_repo_exist(self):
+        ns2_name = "unittestnamespace2"
+        self._create_namespace(ns2_name, groups=[self.pe_group])
+        ns_detail_url = reverse('galaxy:api:v3:namespaces-detail', kwargs={"name": ns2_name})
+        with self.settings(GALAXY_DEPLOYMENT_MODE=self.deployment_mode):
+            response = self.client.delete(ns_detail_url)
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    # def test_conflict_error_if_already_exists(self):
-    #     """Ensure API returns 409-Conflict in case of existing namespace."""
-    #     ns3_name = "unittestnamespace3"
-    #     self._create_namespace(ns3_name, groups=[self.pe_group])
-    #     ns_list_url = reverse('galaxy:api:v3:namespaces-list')
+    def test_conflict_error_if_already_exists(self):
+        """Ensure API returns 409-Conflict in case of existing namespace."""
+        ns3_name = "unittestnamespace3"
+        self._create_namespace(ns3_name, groups=[self.pe_group])
+        ns_list_url = reverse('galaxy:api:v3:namespaces-list')
 
-    #     self.client.force_authenticate(user=self.admin_user)
+        self.client.force_authenticate(user=self.admin_user)
 
-    #     with self.settings(GALAXY_DEPLOYMENT_MODE=self.deployment_mode):
-    #         post_data = {
-    #             "name": ns3_name,
-    #             "company": "A company name",
-    #             "email": "email@companyname.com",
-    #             "description": "A testing namespace",
-    #             "groups": [
-    #                 {
-    #                     "id": self.pe_group.id,
-    #                     "name": self.pe_group.name,
-    #                     "object_permissions": ["change_namespace", "upload_to_namespace"]
-    #                 }
-    #             ]
-    #         }
-    #         response = self.client.post(ns_list_url, post_data, format='json')
-    #         log.debug('namespace response: %s', response.data)
-    #         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        with self.settings(GALAXY_DEPLOYMENT_MODE=self.deployment_mode):
+            post_data = {
+                "name": ns3_name,
+                "company": "A company name",
+                "email": "email@companyname.com",
+                "description": "A testing namespace",
+                "groups": [
+                    {
+                        "id": self.pe_group.id,
+                        "name": self.pe_group.name,
+                        "object_permissions": ["change_namespace", "upload_to_namespace"]
+                    }
+                ]
+            }
+            response = self.client.post(ns_list_url, post_data, format='json')
+            log.debug('namespace response: %s', response.data)
+            self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)

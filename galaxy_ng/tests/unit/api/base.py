@@ -8,7 +8,6 @@ from rest_framework.test import APIClient, APITestCase
 from galaxy_ng.app import models
 from galaxy_ng.app.access_control import access_policy
 from galaxy_ng.app.models import auth as auth_models
-from pulpcore.app.models.role import GroupRole, Role
 from pulpcore.plugin.util import assign_role
 from galaxy_ng.app import constants
 
@@ -77,13 +76,13 @@ class BaseTestCase(APITestCase):
         return auth_models.User.objects.create(username=username)
 
     @staticmethod
-    def _create_group(scope, name, users=None, perms=[]):
+    def _create_group(scope, name, users=None, roles=[]):
         group, _ = auth_models.Group.objects.get_or_create_identity(scope, name)
         if isinstance(users, auth_models.User):
             users = [users]
         group.user_set.add(*users)
-        for p in perms:
-            assign_role(p, group)
+        for r in roles:
+            assign_role(r, group)
         return group
 
     @staticmethod
@@ -122,9 +121,6 @@ class BaseTestCase(APITestCase):
             name='partner-engineers')
 
         for role in pe_roles:
-            # GroupRole.objects.create(role=Role.objects.get(name=role), group=pe_group)
             assign_role(role, pe_group)
-            # Results in:
-            #   ValueError: Cannot assign "<Group: partner-engineers>": "UserRole.user" must be a "User" instance.
 
         return pe_group

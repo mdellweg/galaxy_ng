@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
@@ -59,7 +60,10 @@ class GroupPermissionField(serializers.Field):
                     group_filter[field] = group_data[field]
             try:
                 group = auth_models.Group.objects.get(**group_filter)
-                internal[group] = group_data['object_permissions']
+                if 'object_permissions' in group_data:
+                    internal[group] = group_data['object_permissions']
+                if 'object_roles' in group_data:
+                    internal[group] = group_data['object_roles']
             except auth_models.Group.DoesNotExist:
                 raise ValidationError(detail={
                     'groups': _("Group name=%s, id=%s does not exist") % (
