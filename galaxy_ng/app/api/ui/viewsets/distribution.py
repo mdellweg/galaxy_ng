@@ -31,7 +31,7 @@ class MyDistributionViewSet(DistributionViewSet):
             'galaxy.change_synclist',
             any_perm=True,
             accept_global_perms=False,
-            klass=models.SyncList
+            qs=models.SyncList.objects.all()
         )
 
         # TODO: find a better way query this data
