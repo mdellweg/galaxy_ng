@@ -6,6 +6,7 @@ galaxy_ng.app.__init__:PulpGalaxyPluginAppConfig.ready() method.
 from django.apps import apps
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_migrate
+from django.utils.timezone import timedelta
 from pulp_ansible.app.models import AnsibleDistribution, AnsibleRepository, Collection
 from galaxy_ng.app.access_control.statements import PULP_CONTAINER_VIEWSETS
 from galaxy_ng.app.models import Namespace
@@ -65,4 +66,27 @@ post_migrate.connect(
     set_pulp_container_access_policies,
     sender=apps.get_app_config("galaxy"),
     dispatch_uid="override_pulp_container_access_policies"
+)
+
+
+def setup_scheduled_sync_task():
+    task_name = "galaxy_ng.app.tasks.scheduled_sync.scheduled_sync"
+    for dispatch_interval, suffix in (
+        (timedelta(days=1), "daily"),
+        (timedelta(days=7), "weekly"),
+        (timedelta(months=1), "monthly"),
+    ):
+        name = f"[galaxy_ng] Sync repositories {suffix}"
+        if True:  # Could be a setting here
+            models.TaskSchedule.objects.update_or_create(
+                name=name, defaults={"task_name": task_name, "dispatch_interval": dispatch_interval}
+            )
+        else:
+            models.TaskSchedule.objects.filter(task_name=task_name).delete()
+
+
+post_migrate.connect(
+    setup_scheduled_sync_task,
+    sender=apps.get_app_config("galaxy"),
+    dispatch_uid="galaxy.setup_scheduled_sync_task"
 )
